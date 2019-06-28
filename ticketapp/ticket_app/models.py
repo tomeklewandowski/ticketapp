@@ -35,5 +35,5 @@ class Ticket(models.Model):
     ticket_type = models.IntegerField(choices=ticketsType, default=None),
     reservation_date = models.DateTimeField(null=True),
     reservation_status = models.IntegerField(choices=reservationStatus, default=1),
-    event = models.ForeignKey(Event),
+    event = models.ForeignKey(Event, on_delete=models.CASCADE),
 
