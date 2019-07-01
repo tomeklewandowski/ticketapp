@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <head><meta charset="utf-8"/>
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static "mystyle.css" %}"></head>
+        <h1>Buy tickest for your favorite event</h1>
+        {% if user.is_authenticated %}
+    <div class="menu">
+        <span class="item"><a href="/logout">Logout</a></span>
+        <span class="item"><a href="/addevent">Add new event</a></span>
+        </div>
+        {% else %}
+        <a href="/login"><h2>Login</h2></a>
+        {% endif %}
+        <img src="{% static "main.jpeg" %}"></img>
+        {% block content %}
+        <a href="/register"><h2>Registration</h2></a>
+    {% endblock %}
+    </body>
+</html>

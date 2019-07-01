@@ -4,9 +4,38 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, logout, login
 from django.contrib.auth.models import User
-from .forms import LoginForm, RegisterForm, AddEventForm
+from .forms import LoginForm, AddEventForm
 from django.views import View
 from .models import Event
+
+
+class MainView(View):
+    def get(self, request):
+        ctx = {"event": Event}
+        return render(request, "base.html", ctx)
+
+
+class LoginView(View):
+    def get(self, request):
+        form = LoginForm()
+        return render(request, "login.html", {"form": form})
+
+    def post(self, request):
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('/')
+            else:
+                return HttpResponse("You are not log in, so you can't add new event.")
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('/')
 
 
 class AddEventView(LoginRequiredMixin, View):
