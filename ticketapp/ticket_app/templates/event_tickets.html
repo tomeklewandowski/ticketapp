@@ -1,0 +1,20 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Available tickets</title>
+<body>
+
+    {% for ticket in tickets %}
+            <div class="col-md-4">
+                    {{ ticket.ticket_type }}
+                    {% if ticket.ticket_type %}
+                     <img src="{{ book.book_cover.url }}"/>
+                    {% else %}
+                    <h2> Something go wrong</h2>
+                    {% endif %}
+            </div>
+    {% endfor %}
+</body>
+</html>

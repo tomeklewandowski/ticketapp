@@ -4,9 +4,11 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, logout, login
 from django.contrib.auth.models import User
-from .forms import LoginForm, AddEventForm
+from . forms import LoginForm, AddEventForm
 from django.views import View
-from .models import Event
+from rest_framework import generics
+from .models import Event, Ticket
+from showtimes.serializers import EventSerializer, TicketSerializer
 
 
 class MainView(View):
@@ -59,3 +61,25 @@ class AddEventView(LoginRequiredMixin, View):
                 return HttpResponse('This event is already here.')
             ctx = {"event": event}
             return render(request, "new_event.html", ctx)
+
+
+class EventListView(generics.ListCreateAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+
+
+class EventView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Event.objects.filter()
+    serializer_class = EventSerializer
+
+
+class TicketScreeningListView(generics.ListCreateAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = TicketSerializer
+
+
+class TicketView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Ticket.objects.filter()
+    serializer_class = TicketSerializer
+
+

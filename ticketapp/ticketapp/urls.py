@@ -16,9 +16,7 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path
-from .views import AddEventView, LoginView, logout_view
-from .views import MainView
-from django.conf.urls.static import static
+from ticket_app.views import AddEventView, LoginView, logout_view, MainView
 from django.contrib.auth import views
 
 urlpatterns = [

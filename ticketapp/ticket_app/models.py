@@ -19,7 +19,7 @@ reservationStatus = (
 class Event(models.Model):
     id = models.AutoField(primary_key=True),
     name = models.CharField(max_length=256),
-    date = models.DateTimeField,
+    date = models.DateTimeField(blank=True),
     types = models.TextField(default=None),
 
     def set_types(self, types_list):

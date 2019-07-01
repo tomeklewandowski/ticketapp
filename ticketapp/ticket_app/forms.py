@@ -1,6 +1,5 @@
 from django import forms
-from django.core.validators import EmailValidator
-from. models import Event, Ticket
+from . models import Event, Ticket
 from django.forms import ModelForm
 from .models import ticketsType, reservationStatus
 
