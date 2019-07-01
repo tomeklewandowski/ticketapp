@@ -16,13 +16,11 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path
-from ticket_app.views import AddEventView, LoginView, logout_view, MainView
-from django.contrib.auth import views
+from ticket_app.views import AddEventView
+from ticket_app.views import EventList
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', MainView.as_view(), name="main"),
-    path('login', LoginView.as_view(), name="login"),
-    path('logout', logout_view, name="logout" ),
     path('addevent', AddEventView.as_view(), name="addevent"),
+    path('list_events', EventList.as_view(), name="list_events"),
 ]

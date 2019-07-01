@@ -1,12 +1,11 @@
+import datetime
+from background_task import background
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, logout, login
-from django.contrib.auth.models import User
-from . forms import LoginForm, AddEventForm
+from . forms import AddEventForm
 from django.views import View
-from rest_framework import generics
 from .models import Event, Ticket
 from ticket_app.serializers import EventSerializer, TicketSerializer
 from rest_framework.views import APIView
@@ -15,37 +14,7 @@ from rest_framework import status
 from django.http import Http404
 
 
-
-class MainView(View):
-    def get(self, request):
-        ctx = {"event": Event}
-        return render(request, "base.html", ctx)
-
-
-class LoginView(View):
-    def get(self, request):
-        form = LoginForm()
-        return render(request, "login.html", {"form": form})
-
-    def post(self, request):
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('/')
-            else:
-                return HttpResponse("You are not log in, so you can't add new event.")
-
-
-def logout_view(request):
-    logout(request)
-    return redirect('/')
-
-
-class AddEventView(LoginRequiredMixin, View):
+class AddEventView(View):
     def get(self, request):
         form = AddEventForm()
         return render(request, "addevent.html", {"form": form})
@@ -66,31 +35,6 @@ class AddEventView(LoginRequiredMixin, View):
                 return HttpResponse('This event is already here.')
             ctx = {"event": event}
             return render(request, "new_event.html", ctx)
-
-
-class EventListView(generics.ListCreateAPIView):
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
-
-
-class EventView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Event.objects.filter()
-    serializer_class = EventSerializer
-
-
-class TicketScreeningListView(generics.ListCreateAPIView):
-    queryset = Ticket.objects.all()
-    serializer_class = TicketSerializer
-
-
-class TicketView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Ticket.objects.filter()
-    serializer_class = TicketSerializer
-
-
-
-
-
 
 
 class EventList(APIView):
@@ -118,7 +62,7 @@ class EventView(APIView):
 
     def get(self, request, id, format=None):
         event = self.get_object(id)
-        serializer = BookSerializer(event, context={"request": request})
+        serializer = EventSerializer(event, context={"request": request})
         return Response(serializer.data)
 
     def delete(self, request, id, format=None):
@@ -136,6 +80,45 @@ class EventView(APIView):
 
     def post(self, request, id, format=None):
         pass
+
+
+class AvailableTickets(APIView):
+
+    def get_event_tickets(self, pk, request, format=None):
+        try:
+            e = Event.objects.get(pk=pk)
+            types = e.ticket_types
+            resp = dict()
+            for ticket_type in types:
+                count_of_tickets = Entry.objects.filter(reservation_status=1, event=Event.id, ticket_type=ticket_type).count()
+                resp.add(ticket_type, count_of_tickets)
+            return resp
+        except Event.DoesNotExist:
+            raise Http404
+
+    def get(self, resp, request, format=None):
+        self.get = json.dumps(resp)
+
+
+class Reservation(APIView):
+
+    def get_available_ticket(self, request, event_id, ticket_type, format=None):
+        reserved_ticket = Ticket.objects.filter(id=int(event_id), ticket_type=int(ticket_type), reservation_status=1).first()
+        reserved_ticket.reservation_status=2
+        reserved_ticket.reservation_date=datetime.now()
+        reserved_ticket.save()
+        self.expire(reserved_ticket.id)
+        return Response(reserved_ticket.id, price)
+
+    @background(schedule=15*60)
+    def expire(self, ticket_id):
+        reserved_ticket = Ticket.objects.get(pk=ticket_id)
+        reserved_ticket.reservation_status=1
+        reserved_ticket.save()
+
+
+
+
 
 
 

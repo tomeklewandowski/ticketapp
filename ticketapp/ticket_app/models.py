@@ -32,7 +32,7 @@ class Event(models.Model):
 class Ticket(models.Model):
     id = models.AutoField(primary_key=True),
     price = models.DecimalField(decimal_places=2),
-    ticket_type = models.IntegerField(choices=ticketsType, default=None),
+    ticket_type = models.IntegerField(choices=ticketsType),
     reservation_date = models.DateTimeField(auto_now_add=True),
     reservation_status = models.IntegerField(choices=reservationStatus, default=1),
     event = models.ForeignKey(Event, on_delete=models.CASCADE),

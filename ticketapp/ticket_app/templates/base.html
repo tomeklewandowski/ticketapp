@@ -2,13 +2,9 @@
 <html>
     <head><meta charset="utf-8"/></head>
         <h1>Buy tickets for your favorite events</h1>
-        {% if user.is_authenticated %}
-    <div class="menu">
-        <span class="item"><a href="/logout">Logout</a></span>
+    <div>
         <span class="item"><a href="/addevent">Add new event</a></span>
         </div>
-        {% else %}
-        <a href="/login"><h2>Login</h2></a>
         {% endif %}
     </body>
 </html>
