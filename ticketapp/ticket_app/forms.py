@@ -13,4 +13,11 @@ class AddEventForm(forms.ModelForm):
 
     class Meta:
         model = Event
-        fields = ['name', 'date', 'types']
+        fields = "__all__"
+
+
+class BuyTicketForm(forms.ModelForm):
+
+    class Meta:
+        model = Ticket
+        fields = "__all__"
