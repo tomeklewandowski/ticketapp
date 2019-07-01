@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
+from rest_framework import viewsets
 
 
 class AddEventView(View):
@@ -116,6 +117,10 @@ class Reservation(APIView):
         reserved_ticket.reservation_status=1
         reserved_ticket.save()
 
+
+class EventViewSet(viewsets.ModelViewSet):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
 
 
 
