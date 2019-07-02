@@ -40,7 +40,14 @@ INSTALLED_APPS = [
     'ticket_app',
     'background_task',
     'rest_framework',
+    'paypal.standard.ipn',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+      'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

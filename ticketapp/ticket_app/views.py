@@ -1,10 +1,9 @@
 import datetime
 from background_task import background
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.http import HttpResponse
-from . forms import AddEventForm
+from ticket_app.forms import AddEventForm
 from django.views import View
 from .models import Event, Ticket
 from ticket_app.serializers import EventSerializer, TicketSerializer
@@ -13,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
 from rest_framework import viewsets
+from django.core.serializers import json
 
 
 class AddEventView(View):
@@ -38,12 +38,12 @@ class AddEventView(View):
             return render(request, "new_event.html", ctx)
 
 
-class EventList(APIView):
+class EventListViewSet(viewsets.ModelViewSet):
 
     def get(self, request, format=None):
         events = Event.objects.all()
-        serializer = EventSerializer(events, many=True, context={"request": request})
-        return Response(serializer.data)
+        serializer_class = EventSerializer(events, many=True, context={"request": request})
+        return Response(serializer_class.data)
 
     def post(self, request, format=None):
         serializer = EventSerializer(data=request.data)
@@ -53,7 +53,7 @@ class EventList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class EventView(APIView):
+class EventViewSet(viewsets.ModelViewSet):
 
     def get_object(self, pk):
         try:
@@ -63,27 +63,27 @@ class EventView(APIView):
 
     def get(self, request, id, format=None):
         event = self.get_object(id)
-        serializer = EventSerializer(event, context={"request": request})
-        return Response(serializer.data)
+        serializer_class = EventSerializer(event, context={"request": request})
+        return Response(serializer_class.data)
 
-    def delete(self, request, id, format=None):
+    def delete(self, id, request, format=None):
         event = self.get_object(id)
         event.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def put(self, request, id, format=None):
         event = self.get_object(id)
-        serializer = EventSerializer(event, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer_class = EventSerializer(event, data=request.data)
+        if serializer_class.is_valid():
+            serializer_class.save()
+            return Response(serializer_class.data)
+        return Response(serializer_class.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, id, format=None):
         pass
 
 
-class AvailableTickets(APIView):
+class AvailableTicketsViewSet(viewsets.ModelViewSet):
 
     def get_event_tickets(self, pk, request, format=None):
         try:
@@ -91,8 +91,8 @@ class AvailableTickets(APIView):
             types = e.ticket_types
             resp = dict()
             for ticket_type in types:
-                count_of_tickets = Entry.objects.filter(reservation_status=1, event=Event.id, ticket_type=ticket_type).count()
-                resp.add(ticket_type, count_of_tickets)
+                queryset = Ticket.objects.filter(reservation_status=1, event=Event.id, ticket_type=ticket_type).count()
+                resp.add(ticket_type, queryset)
             return resp
         except Event.DoesNotExist:
             raise Http404
@@ -101,21 +101,21 @@ class AvailableTickets(APIView):
         self.get = json.dumps(resp)
 
 
-class Reservation(APIView):
+class ReservationViewSet(viewsets.ModelViewSet):
 
-    def get_available_ticket(self, request, event_id, ticket_type, format=None):
-        reserved_ticket = Ticket.objects.filter(id=int(event_id), ticket_type=int(ticket_type), reservation_status=1).first()
-        reserved_ticket.reservation_status=2
-        reserved_ticket.reservation_date=datetime.now()
-        reserved_ticket.save()
-        self.expire(reserved_ticket.id)
-        return Response(reserved_ticket.id, price)
+    def get_available_ticket(self, request, event_id, ticket_type, price, format=None):
+        queryset = Ticket.objects.filter(id=int(event_id), ticket_type=int(ticket_type), reservation_status=1).first()
+        queryset.reservation_status=2
+        queryset.reservation_date=datetime.now()
+        queryset.save()
+        self.expire(queryset.id)
+        return Response(queryset.id, price)
 
     @background(schedule=15*60)
     def expire(self, ticket_id):
-        reserved_ticket = Ticket.objects.get(pk=ticket_id)
-        reserved_ticket.reservation_status=1
-        reserved_ticket.save()
+        queryset = Ticket.objects.get(pk=ticket_id)
+        queryset.reservation_status=1
+        queryset.save()
 
 
 class EventViewSet(viewsets.ModelViewSet):
@@ -123,6 +123,43 @@ class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
 
 
+class TicketPayViewSet(viewsets.ModelViewSet):
+
+    def ticket_payment(selfself, request, event_id, ticket_type, reservation_date, format=None):
+        queryset = Ticket.objects.filter(id=int(event_id), ticket_type=int(ticket_type), reservation_status=2, reservation_date=reservation_date)
+        #verify_cash_amount = it belongs to an external api
+        verify_cash_amount = True
+        if verify_cash_amount is True:
+            queryset.reservation_status=3
+            queryset.reservation_date=datetime.now()
+            queryset.save()
+        else:
+            HttpResponse(f'Please pay your ticket')
+            return Response(queryset)
+
+
+from django.urls import reverse
+from django.shortcuts import render
+from paypal.standard.forms import PayPalPaymentsForm
+
+def view_that_asks_for_money(request):
+
+
+    paypal_dict = {
+        "business": "receiver_email@example.com",
+        "amount": "10000000.00",
+        "item_name": "name of the item",
+        "invoice": "unique-invoice-id",
+        "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
+        "return": request.build_absolute_uri(reverse('your-return-view')),
+        "cancel_return": request.build_absolute_uri(reverse('your-cancel-view')),
+        "custom": "premium_plan",  # Custom command to correlate to some function later (optional)
+    }
+
+
+    form = PayPalPaymentsForm(initial=paypal_dict)
+    context = {"form": form}
+    return render(request, "payment.html", context)
 
 
 
