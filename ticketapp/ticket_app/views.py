@@ -138,7 +138,7 @@ class EventViewSet(viewsets.ModelViewSet):
 
 class TicketPayViewSet(viewsets.ModelViewSet):
 
-    def ticket_payment(selfself, request, event_id, ticket_type, reservation_date, format=None):
+    def ticket_payment(self, request, event_id, ticket_type, reservation_date, format=None):
         queryset = Ticket.objects.filter(id=int(event_id), ticket_type=int(ticket_type), reservation_status=2, reservation_date=reservation_date)
         #verify_cash_amount = it belongs to an external api or maybe a django-paypal
         verify_cash_amount = True
@@ -154,29 +154,6 @@ class TicketPayViewSet(viewsets.ModelViewSet):
         self.get = json.dumps(queryset)
 
 
-from django.urls import reverse
-from django.shortcuts import render
-from paypal.standard.forms import PayPalPaymentsForm
-
-
-def view_that_asks_for_money(request):
-
-    paypal_dict = {
-        "business": "receiver_email@example.com",
-        "amount": "10000000.00",
-        "item_name": "name of the item",
-        "invoice": "unique-invoice-id",
-        "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
-        "return": request.build_absolute_uri(reverse('your-return-view')),
-        "cancel_return": request.build_absolute_uri(reverse('your-cancel-view')),
-        "custom": "premium_plan",  # Custom command to correlate to some function later (optional)
-    }
-
-    form = PayPalPaymentsForm(initial=paypal_dict)
-    context = {"form": form}
-    return render(request, "payment.html", context)
-
-
 class Stats(APIView):
 
     def get(self, request):
@@ -185,7 +162,35 @@ class Stats(APIView):
         result['total_tickets'] = tickets_count
         ticket_reserved = Ticket.objects.filter(reservation_status='1').count()
         result['reserve_tickets'] = ticket_reserved
+        # and so on
         return Response(result)
+
+
+#Maybe this would help but I have not enough time
+
+# from django.urls import reverse
+# from django.shortcuts import render
+# from paypal.standard.forms import PayPalPaymentsForm
+#
+#
+# def view_that_asks_for_money(request):
+#
+#     paypal_dict = {
+#         "business": "receiver_email@example.com",
+#         "amount": "10000000.00",
+#         "item_name": "name of the item",
+#         "invoice": "unique-invoice-id",
+#         "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
+#         "return": request.build_absolute_uri(reverse('your-return-view')),
+#         "cancel_return": request.build_absolute_uri(reverse('your-cancel-view')),
+#         "custom": "premium_plan",  # Custom command to correlate to some function later (optional)
+#     }
+#
+#     form = PayPalPaymentsForm(initial=paypal_dict)
+#     context = {"form": form}
+#     return render(request, "payment.html", context)
+
+
 
 
 

@@ -5,22 +5,22 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    initial = True
+   initial = True
 
-    dependencies = [
-    ]
+   dependencies = [
+   ]
 
-    operations = [
-        migrations.CreateModel(
-            name='Event',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-            ],
-        ),
-        migrations.CreateModel(
-            name='Ticket',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-            ],
-        ),
-    ]
+   operations = [
+       migrations.CreateModel(
+           name='Event',
+           fields=[
+               ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+           ],
+       ),
+       migrations.CreateModel(
+           name='Ticket',
+           fields=[
+               ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+           ],
+       ),
+]

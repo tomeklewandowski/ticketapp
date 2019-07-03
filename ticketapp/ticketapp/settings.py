@@ -48,6 +48,10 @@ INSTALLED_APPS = [
 #       'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
 #     ]
 #}
+# REST_FRAMEWORK = {
+#
+#     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
+# }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
