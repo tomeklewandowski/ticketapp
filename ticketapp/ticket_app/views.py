@@ -93,34 +93,36 @@ class EventViewSet(viewsets.ModelViewSet):
         self.get = json.dumps(event)
 
 
+class AvailableTicketsViewSet(APIView):
 
-class AvailableTicketsViewSet(viewsets.ModelViewSet):
-
-    def get_event_tickets(self, pk, request, format=None):
+    def get_event_tickets(self, pk):
         try:
             e = Event.objects.get(pk=pk)
             types = e.ticket_types
             resp = dict()
             for ticket_type in types:
-                queryset = Ticket.objects.filter(reservation_status=1, event=Event.id, ticket_type=ticket_type).count()
+                queryset = Ticket.objects.filter(reservation_status=1, event=Event.id).count()
                 resp.add(ticket_type, queryset)
             return resp
         except Event.DoesNotExist:
             raise Http404
 
-    def get(self, resp, request, format=None):
-        self.get = json.dumps(resp)
+    def get(self, request, event_id):
+        return Response(self.get_event_tickets(event_id))
 
 
-class ReservationViewSet(viewsets.ModelViewSet):
+class ReservationViewSet(APIView):
 
-    def get_available_ticket(self, request, event_id, ticket_type, price, format=None):
-        queryset = Ticket.objects.filter(id=int(event_id), ticket_type=int(ticket_type), reservation_status=1).first()
-        queryset.reservation_status=2
-        queryset.reservation_date=datetime.now()
-        queryset.save()
-        self.expire(queryset.id)
-        return Response(queryset.id, price)
+    def reserve_ticket(self, event_id, ticket_type):
+        ticket = Ticket.objects.filter(id=int(event_id), ticket_type=int(ticket_type), reservation_status='1').first()
+        ticket.reservation_status=2
+        ticket.reservation_date=datetime.now()
+        ticket.save()
+        self.expire(ticket.id)
+        return Response(ticket.id, ticket.price)
+
+    def get(self, request, event_id, ticket_type):
+        return Response(self.reserve_ticket(event_id, ticket_type))
 
     @background(schedule=15*60)
     def expire(self, ticket_id):
@@ -175,7 +177,15 @@ def view_that_asks_for_money(request):
     return render(request, "payment.html", context)
 
 
+class Stats(APIView):
 
+    def get(self, request):
+        result = dict()
+        tickets_count = Ticket.objects.all().count()
+        result['total_tickets'] = tickets_count
+        ticket_reserved = Ticket.objects.filter(reservation_status='1').count()
+        result['reserve_tickets'] = ticket_reserved
+        return Response(result)
 
 
 
