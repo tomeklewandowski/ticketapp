@@ -37,6 +37,9 @@ class AddEventView(View):
             ctx = {"event": event}
             return render(request, "new_event.html", ctx)
 
+    def get(self, event, request, format=None):
+        self.get = json.dumps(event)
+
 
 class EventListViewSet(viewsets.ModelViewSet):
 
@@ -51,6 +54,10 @@ class EventListViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, serializer, request, format=None):
+        self.get = json.dumps(serializer)
+
 
 
 class EventViewSet(viewsets.ModelViewSet):
@@ -81,6 +88,10 @@ class EventViewSet(viewsets.ModelViewSet):
 
     def post(self, request, id, format=None):
         pass
+
+    def get(self, event, request, format=None):
+        self.get = json.dumps(event)
+
 
 
 class AvailableTicketsViewSet(viewsets.ModelViewSet):
@@ -127,7 +138,7 @@ class TicketPayViewSet(viewsets.ModelViewSet):
 
     def ticket_payment(selfself, request, event_id, ticket_type, reservation_date, format=None):
         queryset = Ticket.objects.filter(id=int(event_id), ticket_type=int(ticket_type), reservation_status=2, reservation_date=reservation_date)
-        #verify_cash_amount = it belongs to an external api
+        #verify_cash_amount = it belongs to an external api or maybe a django-paypal
         verify_cash_amount = True
         if verify_cash_amount is True:
             queryset.reservation_status=3
@@ -137,13 +148,16 @@ class TicketPayViewSet(viewsets.ModelViewSet):
             HttpResponse(f'Please pay your ticket')
             return Response(queryset)
 
+    def get(self, queryset, request, format=None):
+        self.get = json.dumps(queryset)
+
 
 from django.urls import reverse
 from django.shortcuts import render
 from paypal.standard.forms import PayPalPaymentsForm
 
-def view_that_asks_for_money(request):
 
+def view_that_asks_for_money(request):
 
     paypal_dict = {
         "business": "receiver_email@example.com",
@@ -155,7 +169,6 @@ def view_that_asks_for_money(request):
         "cancel_return": request.build_absolute_uri(reverse('your-cancel-view')),
         "custom": "premium_plan",  # Custom command to correlate to some function later (optional)
     }
-
 
     form = PayPalPaymentsForm(initial=paypal_dict)
     context = {"form": form}
