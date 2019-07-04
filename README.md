@@ -19,3 +19,9 @@ Install the requirements in your project folder. You may use a virtual environme
 
 `$ pip install -r requirements.txt`
 
+## License
+Apache License
+                           Version 2.0, January 2004
+                        `http://www.apache.org/licenses/`
+
+
