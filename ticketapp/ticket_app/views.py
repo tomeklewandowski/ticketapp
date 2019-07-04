@@ -138,9 +138,10 @@ class EventViewSet(viewsets.ModelViewSet):
 
 class TicketPayViewSet(viewsets.ModelViewSet):
 
-    def ticket_payment(self, request, event_id, ticket_type, reservation_date, format=None):
-        queryset = Ticket.objects.filter(id=int(event_id), ticket_type=int(ticket_type), reservation_status=2, reservation_date=reservation_date)
+    def ticket_payment(self, request, event_id, ticket_type, reservation_date, price, format=None):
+        queryset = Ticket.objects.filter(id=int(event_id), ticket_type=int(ticket_type), reservation_status=2, reservation_date=reservation_date, price=price)
         #verify_cash_amount = it belongs to an external api or maybe a django-paypal
+        #also need to check is payment is equl to price of ticket
         verify_cash_amount = True
         if verify_cash_amount is True:
             queryset.reservation_status=3

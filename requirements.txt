@@ -1,6 +1,8 @@
+background_task
 decorator
 Django
 django-extensions
+django-paypal
 djangorestframework
 Faker
 ipdb
@@ -11,10 +13,12 @@ parso
 pexpect
 pickleshare
 prompt-toolkit
+psycopg2
 ptyprocess
 Pygments
 python-dateutil
 pytz
+random
 simplegeneric
 six
 text-unidecode
